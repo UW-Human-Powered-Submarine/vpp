@@ -46,6 +46,7 @@ void interrupt() { // one rotation has happened
     // Serial.println();
     // Serial.println("Interrupted!");
     // Serial.println();
+    ms_array[i] = millis() - ms_start;
     ms_start = millis();
     if(i == SIZE - 1) {
         i = 0;
