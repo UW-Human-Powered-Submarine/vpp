@@ -31,26 +31,24 @@ Encoder enc(CA, CB);
 #define HALL 2
 #define HALLINTERRUPT HALL-2 // Pin 2 but interrupt Pin 0
 // Variables to calculate RPM from HES data
-#define SIZE 2 // define size of array
-unsigned long ms_array[SIZE]; // stores an array of microseconds (each element is 1 rotation’s time)
+#define SIZE 50 // define size of array
+unsigned long rpm_array[SIZE]; // stores an array of microseconds (each element is 1 rotation’s time)
 volatile unsigned int i;
-unsigned long mean;
+unsigned long mean = 0;
 unsigned long ms_start;
 
 // States
 double RPM;
 // We need a map of RPM to angle (or use a function to model it)
 
-// Function to update time(s) array everytime 1 rotation has happened
+// Takes time of each revolution in ms converts to rpm and stores into an array
+// AKA period of the motor
 void interrupt() { // one rotation has happened
-    // Serial.println();
-    // Serial.println("Interrupted!");
-    // Serial.println();
-    ms_array[i] = millis() - ms_start;
+    rpm_array[i] = 1.0 / (((millis() - ms_start) / (60.0 * 1000))); 		//initially has ms_start set to 0
     ms_start = millis();
-    if(i == SIZE - 1) {
+    if(i == SIZE - 1) {		//sets i = 0 when it reaches the end of the array (replaces old value of array)
         i = 0;
-    } else {
+    } else {			//increases i by 1 to parse through the array
         i++;
     }
 }
@@ -82,12 +80,13 @@ void setup() {
 // Function to check RPM
 double checkRPM() 
 {
-	mean = ((mean * (double) SIZE) - ms_array[i]) / SIZE; // prepare average calculation for later
-	ms_array[i] = (millis() - ms_start); // record ms passed to array
-	mean = ((mean * (double) SIZE) + ms_array[i]) / SIZE; // get new average
+//everytime i increases, the mean is updated by getting rid of the old value and replacing it with a new value
+//it is not extremely intuitive but seems to work
+	mean = ((mean * (double) SIZE) - rpm_array[i]) / SIZE; // prepare average calculation for later 		//mean is instantiated as 0
+	rpm_array[i] = 1.0 / (((millis() - ms_start) / (60.0 * 1000)));  // record ms passed to array
+	mean = ((mean * (double) SIZE) + rpm_array[i]) / SIZE; // get new average
 	
-	// get RPM based on average microseconds
-    double newRPM = 1.0 / ((mean / (60.0 * 1000)) / SIZE);
+    double newRPM = mean;
     Serial.print("Current RPM: ");
     Serial.println(newRPM);
     Serial.println();
