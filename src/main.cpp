@@ -42,7 +42,6 @@ double RPM;
 // We need a map of RPM to angle (or use a function to model it)
 
 // Takes time of each revolution in ms converts to rpm and stores into an array
-// AKA period of the motor
 void interrupt() { // one rotation has happened
     rpm_array[i] = 1.0 / (((millis() - ms_start) / (60.0 * 1000))); 		//initially has ms_start set to 0
     ms_start = millis();
@@ -82,9 +81,9 @@ double checkRPM()
 {
 //everytime i increases, the mean is updated by getting rid of the old value and replacing it with a new value
 //it is not extremely intuitive but seems to work
-	mean = ((mean * (double) SIZE) - rpm_array[i]) / SIZE; // prepare average calculation for later 		//mean is instantiated as 0
-	rpm_array[i] = 1.0 / (((millis() - ms_start) / (60.0 * 1000)));  // record ms passed to array
-	mean = ((mean * (double) SIZE) + rpm_array[i]) / SIZE; // get new average
+	mean = ((mean * (double) SIZE) - rpm_array[i]) / SIZE; // prepare average calculation for later 		//subtract the current value in rpm[i]
+	rpm_array[i] = 1.0 / (((millis() - ms_start) / (60.0 * 1000)));  // record ms passed to array			//caluculate the new value
+	mean = ((mean * (double) SIZE) + rpm_array[i]) / SIZE; // get new average					//add the new value in rpm[i]
 	
     double newRPM = mean;
     Serial.print("Current RPM: ");
